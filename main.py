@@ -69,6 +69,7 @@ def dfs(n, graph, start) -> Dict[Tuple[int, int], ColorEnum]:
     t = t + 1
     PS[v] = t
 
+  idfs(0, t)
   return colors
 
 
@@ -122,8 +123,9 @@ def read_datafile(filename):
     n = int(f.readline().strip())
     data = list(
       map(lambda l: list(map(int,
-                             l.strip("\n").split(" "))), f.readlines()))
+                             l.lstrip("\n").split(" "))), f.readlines()))
   return (n, data)
+
 
 # Write the result file in Gephi's GDF format
 def write_gdf_file(filename, n, data, colors):
@@ -134,15 +136,22 @@ def write_gdf_file(filename, n, data, colors):
     f.write(
       "edgedef>node1 VARCHAR, node2 VARCHAR, directed BOOLEAN, color VARCHAR\n"
     )
+    s = []
     for i in range(n):
       for j in range(n):
         if data[i][j] == 1 and (i, j) in colors.keys():
-          f.write("%d, %d, false,'%s'\n" %
-                  (i + 1, j + 1, match_color(colors[(i, j)])))
+          s.append("%d, %d, false,'%s'\n" %
+                   (i + 1, j + 1, match_color(colors[(i, j)])))
+    s.sort()
+    for line in s:
+      f.write(line)
+
+
 def main():
   n, data = read_datafile(argv[1] if len(argv) > 1 else "graph_1b.txt")
   colors = dfs(n, data, 0)
-  time_str = time.strftime("%d_%b_%Y_%H:%M:%S", time.localtime())
+  # print(colors)
+  time_str = time.strftime("%H_%M_%S", time.localtime())
   write_gdf_file("graph_" + time_str + "_dfs_.gdf", n, data, colors)
   colors, lw, av = bfs(n, data, 0)
   write_gdf_file("graph_" + time_str + "_bfs_.gdf", n, data, colors)
